@@ -7,19 +7,17 @@ import type { RoadmapNodeInfo } from "@/data/roadmap-nodes/cyber-security";
 const RoadmapClient = dynamic(() => import("./RoadmapClient"), { ssr: false });
 
 export default function RoadmapWrapper({
-  initialNodes,
-  initialEdges,
-  nodeData,
+  initialNodes, initialEdges, nodeData, roadmapId,
 }: {
-  initialNodes: Node[];
-  initialEdges: Edge[];
-  nodeData: RoadmapNodeInfo[];
+  initialNodes: Node[]; initialEdges: Edge[];
+  nodeData: RoadmapNodeInfo[]; roadmapId: string;
 }) {
   return (
     <RoadmapClient
       initialNodes={initialNodes}
       initialEdges={initialEdges}
       nodeData={nodeData}
+      roadmapId={roadmapId}
     />
   );
 }

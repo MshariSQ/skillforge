@@ -8,8 +8,8 @@ import { getLoginUrl } from "@/lib/api";
 const navLinks = [
   { label: "Roadmaps", href: "/roadmaps" },
   { label: "Certifications", href: "/certifications" },
-  { label: "Courses", href: "#courses" },
-  { label: "Community", href: "#" },
+  { label: "Courses", href: "/courses" },
+  { label: "About", href: "/about" },
 ];
 
 export default function Navbar() {

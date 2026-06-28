@@ -7,7 +7,6 @@ interface Env {
   WORKER_URL: string;
 }
 
-// ── Base64url ────────────────────────────────────────────────────────────────
 function b64url(input: string): string {
   return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
@@ -17,7 +16,6 @@ function b64urlDecode(str: string): string {
   return atob(str);
 }
 
-// ── JWT ──────────────────────────────────────────────────────────────────────
 async function signJWT(payload: Record<string, unknown>, secret: string): Promise<string> {
   const header = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
   const body = b64url(JSON.stringify({ ...payload, iat: Math.floor(Date.now() / 1000) }));
@@ -47,12 +45,11 @@ async function verifyJWT(token: string, secret: string): Promise<Record<string, 
   } catch { return null; }
 }
 
-// ── CORS ─────────────────────────────────────────────────────────────────────
 function corsHeaders(origin: string): Record<string, string> {
   const allowed = ["https://msharisq.github.io", "http://localhost:3000", "http://localhost:3001"];
   return {
     "Access-Control-Allow-Origin": allowed.includes(origin) ? origin : allowed[0],
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Credentials": "true",
   };
@@ -65,7 +62,6 @@ function json(data: unknown, status = 200, origin = ""): Response {
   });
 }
 
-// ── Auth helper ───────────────────────────────────────────────────────────────
 async function getUser(req: Request, env: Env) {
   const auth = req.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return null;
@@ -135,7 +131,12 @@ async function handleAuthCallback(req: Request, env: Env): Promise<Response> {
     const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
       method: "POST",
       headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code }),
+      body: JSON.stringify({
+        client_id: env.GITHUB_CLIENT_ID,
+        client_secret: env.GITHUB_CLIENT_SECRET,
+        code,
+        redirect_uri: `${env.WORKER_URL}/api/auth/callback`,
+      }),
     });
     const { access_token } = await tokenRes.json() as { access_token?: string };
     if (!access_token) return Response.redirect(`${env.FRONTEND_URL}?error=token_failed`, 302);
@@ -163,8 +164,9 @@ async function handleAuthCallback(req: Request, env: Env): Promise<Response> {
     }, env.JWT_SECRET);
 
     return Response.redirect(`${env.FRONTEND_URL}/auth/callback/?token=${token}`, 302);
-  } catch {
-    return Response.redirect(`${env.FRONTEND_URL}?error=auth_failed`, 302);
+  } catch (e) {
+    const msg = encodeURIComponent(e instanceof Error ? e.message : String(e));
+    return Response.redirect(`${env.FRONTEND_URL}?error=auth_failed&detail=${msg}`, 302);
   }
 }
 
@@ -180,9 +182,105 @@ async function handleMe(req: Request, env: Env, origin: string): Promise<Respons
 async function handleProfile(username: string, env: Env, origin: string): Promise<Response> {
   const row = await env.DB.prepare(
     "SELECT github_id, username, name, avatar_url, bio, created_at FROM users WHERE username = ?"
-  ).bind(username).first();
+  ).bind(username).first() as Record<string, unknown> | null;
   if (!row) return json({ error: "User not found" }, 404, origin);
-  return json(row, 200, origin);
+
+  const progressStats = await env.DB.prepare(`
+    SELECT roadmap_id, COUNT(*) as completed
+    FROM user_roadmap_progress WHERE github_id = ?
+    GROUP BY roadmap_id
+  `).bind(row.github_id).all();
+
+  const bookmarkStats = await env.DB.prepare(`
+    SELECT type, COUNT(*) as count
+    FROM user_bookmarks WHERE github_id = ?
+    GROUP BY type
+  `).bind(row.github_id).all();
+
+  const nodesCompleted = (progressStats.results as { completed: number }[])
+    .reduce((sum, r) => sum + r.completed, 0);
+  const roadmapsStarted = progressStats.results.length;
+  const certCount = (bookmarkStats.results as { type: string; count: number }[])
+    .find(r => r.type === "certification")?.count ?? 0;
+  const courseCount = (bookmarkStats.results as { type: string; count: number }[])
+    .find(r => r.type === "course")?.count ?? 0;
+
+  return json({
+    ...row,
+    stats: {
+      roadmaps_started: roadmapsStarted,
+      nodes_completed: nodesCompleted,
+      certs_bookmarked: certCount,
+      courses_bookmarked: courseCount,
+    },
+    progress: progressStats.results,
+  }, 200, origin);
+}
+
+// ── GET /api/progress?roadmap_id=xxx ─────────────────────────────────────────
+async function handleProgressGet(req: Request, env: Env, origin: string): Promise<Response> {
+  const user = await getUser(req, env);
+  if (!user) return json({ error: "Unauthorized" }, 401, origin);
+  const roadmapId = new URL(req.url).searchParams.get("roadmap_id");
+  if (!roadmapId) return json({ error: "roadmap_id required" }, 400, origin);
+  const rows = await env.DB.prepare(
+    "SELECT node_id FROM user_roadmap_progress WHERE github_id = ? AND roadmap_id = ?"
+  ).bind(user.sub, roadmapId).all();
+  return json({ completed: (rows.results as { node_id: string }[]).map(r => r.node_id) }, 200, origin);
+}
+
+// ── POST /api/progress ────────────────────────────────────────────────────────
+async function handleProgressPost(req: Request, env: Env, origin: string): Promise<Response> {
+  const user = await getUser(req, env);
+  if (!user) return json({ error: "Unauthorized" }, 401, origin);
+  const { roadmap_id, node_id } = await req.json() as { roadmap_id: string; node_id: string };
+  await env.DB.prepare(
+    "INSERT OR IGNORE INTO user_roadmap_progress (github_id, roadmap_id, node_id) VALUES (?, ?, ?)"
+  ).bind(user.sub, roadmap_id, node_id).run();
+  return json({ ok: true }, 200, origin);
+}
+
+// ── DELETE /api/progress ──────────────────────────────────────────────────────
+async function handleProgressDelete(req: Request, env: Env, origin: string): Promise<Response> {
+  const user = await getUser(req, env);
+  if (!user) return json({ error: "Unauthorized" }, 401, origin);
+  const { roadmap_id, node_id } = await req.json() as { roadmap_id: string; node_id: string };
+  await env.DB.prepare(
+    "DELETE FROM user_roadmap_progress WHERE github_id = ? AND roadmap_id = ? AND node_id = ?"
+  ).bind(user.sub, roadmap_id, node_id).run();
+  return json({ ok: true }, 200, origin);
+}
+
+// ── GET /api/bookmarks ────────────────────────────────────────────────────────
+async function handleBookmarksGet(req: Request, env: Env, origin: string): Promise<Response> {
+  const user = await getUser(req, env);
+  if (!user) return json({ error: "Unauthorized" }, 401, origin);
+  const rows = await env.DB.prepare(
+    "SELECT type, item_id, created_at FROM user_bookmarks WHERE github_id = ? ORDER BY created_at DESC"
+  ).bind(user.sub).all();
+  return json({ bookmarks: rows.results }, 200, origin);
+}
+
+// ── POST /api/bookmarks ───────────────────────────────────────────────────────
+async function handleBookmarksPost(req: Request, env: Env, origin: string): Promise<Response> {
+  const user = await getUser(req, env);
+  if (!user) return json({ error: "Unauthorized" }, 401, origin);
+  const { type, item_id } = await req.json() as { type: string; item_id: string };
+  await env.DB.prepare(
+    "INSERT OR IGNORE INTO user_bookmarks (github_id, type, item_id) VALUES (?, ?, ?)"
+  ).bind(user.sub, type, item_id).run();
+  return json({ ok: true }, 200, origin);
+}
+
+// ── DELETE /api/bookmarks ─────────────────────────────────────────────────────
+async function handleBookmarksDelete(req: Request, env: Env, origin: string): Promise<Response> {
+  const user = await getUser(req, env);
+  if (!user) return json({ error: "Unauthorized" }, 401, origin);
+  const { type, item_id } = await req.json() as { type: string; item_id: string };
+  await env.DB.prepare(
+    "DELETE FROM user_bookmarks WHERE github_id = ? AND type = ? AND item_id = ?"
+  ).bind(user.sub, type, item_id).run();
+  return json({ ok: true }, 200, origin);
 }
 
 // ── Router ────────────────────────────────────────────────────────────────────
@@ -199,6 +297,18 @@ export default {
     if (pathname === "/api/auth/github") return handleAuthGitHub(env);
     if (pathname === "/api/auth/callback") return handleAuthCallback(req, env);
     if (pathname === "/api/auth/me") return handleMe(req, env, origin);
+
+    if (pathname === "/api/progress") {
+      if (req.method === "GET") return handleProgressGet(req, env, origin);
+      if (req.method === "POST") return handleProgressPost(req, env, origin);
+      if (req.method === "DELETE") return handleProgressDelete(req, env, origin);
+    }
+
+    if (pathname === "/api/bookmarks") {
+      if (req.method === "GET") return handleBookmarksGet(req, env, origin);
+      if (req.method === "POST") return handleBookmarksPost(req, env, origin);
+      if (req.method === "DELETE") return handleBookmarksDelete(req, env, origin);
+    }
 
     const profileMatch = pathname.match(/^\/api\/users\/([^/]+)$/);
     if (profileMatch) return handleProfile(profileMatch[1], env, origin);

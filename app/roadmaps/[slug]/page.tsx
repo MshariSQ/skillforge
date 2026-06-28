@@ -103,7 +103,7 @@ export default function RoadmapPage({ params }: { params: { slug: string } }) {
 
       {/* React Flow */}
       {nodeData.length > 0 ? (
-        <RoadmapWrapper initialNodes={nodes} initialEdges={edges} nodeData={nodeData} />
+        <RoadmapWrapper initialNodes={nodes} initialEdges={edges} nodeData={nodeData} roadmapId={params.slug} />
       ) : (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           <div className="text-center">
