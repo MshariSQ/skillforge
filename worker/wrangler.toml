@@ -6,9 +6,9 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "skillforge-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "5967e413-1c06-4cb1-930b-5efa1a928fcd"
 
 [vars]
-GITHUB_CLIENT_ID = "REPLACE_WITH_YOUR_GITHUB_CLIENT_ID"
+GITHUB_CLIENT_ID = "Ov23liXa9L5aBSKMyvwi"
 FRONTEND_URL = "https://MshariSQ.github.io/skillforge"
-WORKER_URL = "https://skillforge-api.REPLACE_WITH_YOUR_SUBDOMAIN.workers.dev"
+WORKER_URL = "https://skillforge-api.skillforge.workers.dev"
