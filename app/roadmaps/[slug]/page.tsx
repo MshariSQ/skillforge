@@ -88,7 +88,7 @@ export default function RoadmapPage({ params }: { params: { slug: string } }) {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#0D1117] overflow-hidden">
+    <div className="flex flex-col bg-[#0D1117] min-h-screen">
       {/* Header */}
       <div className="shrink-0 border-b border-[#21262d] px-6 py-4 pt-20 flex items-center justify-between">
         <div className="flex items-center gap-4">

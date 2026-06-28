@@ -102,7 +102,6 @@ function NodePanel({
       <div className="p-5 flex flex-col gap-4">
         <p className="text-sm text-gray-400 leading-relaxed">{node.description}</p>
 
-        {/* Progress button */}
         {user ? (
           <button
             onClick={handleToggle}
@@ -128,6 +127,62 @@ function NodePanel({
         <ResourceRow icon={<Award size={13} />} title="Certification" resource={node.resources.certification} />
         <ResourceRow icon={<FileText size={13} />} title="Book" resource={node.resources.book} />
         <ResourceRow icon={<ExternalLink size={13} />} title="Official Docs" resource={node.resources.docs} />
+      </div>
+    </div>
+  );
+}
+
+function NodeCard({ node, completed }: { node: RoadmapNodeInfo; completed: boolean }) {
+  const s = STATUS_COLORS[node.status];
+  return (
+    <div className={`bg-[#161B22] border rounded-2xl p-5 transition-colors ${
+      completed ? "border-emerald-500/40" : "border-[#21262d] hover:border-[#30363d]"
+    }`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs px-2 py-0.5 rounded-full border font-medium"
+          style={{ color: s.border, borderColor: s.border, backgroundColor: s.bg }}>
+          {s.label}
+        </span>
+        {completed && <CheckCircle size={14} className="text-emerald-400" />}
+      </div>
+      <h3 className="font-bold text-white text-sm mb-2">{node.label}</h3>
+      <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-3">{node.description}</p>
+      <div className="flex flex-col gap-0.5 border-t border-[#21262d] pt-3">
+        {node.resources.youtube && (
+          <a href={node.resources.youtube.url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs text-gray-400 hover:text-emerald-400 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-all -mx-2">
+            <PlayCircle size={13} className="text-red-400 shrink-0" />
+            <span className="truncate">{node.resources.youtube.title}</span>
+          </a>
+        )}
+        {node.resources.course && (
+          <a href={node.resources.course.url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs text-gray-400 hover:text-emerald-400 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-all -mx-2">
+            <BookOpen size={13} className="text-blue-400 shrink-0" />
+            <span className="truncate">{node.resources.course.title}</span>
+          </a>
+        )}
+        {node.resources.certification && (
+          <a href={node.resources.certification.url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs text-gray-400 hover:text-emerald-400 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-all -mx-2">
+            <Award size={13} className="text-amber-400 shrink-0" />
+            <span className="truncate">{node.resources.certification.title}</span>
+          </a>
+        )}
+        {node.resources.book && (
+          <a href={node.resources.book.url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs text-gray-400 hover:text-emerald-400 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-all -mx-2">
+            <FileText size={13} className="text-purple-400 shrink-0" />
+            <span className="truncate">{node.resources.book.title}</span>
+          </a>
+        )}
+        {node.resources.docs && (
+          <a href={node.resources.docs.url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs text-gray-400 hover:text-emerald-400 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-all -mx-2">
+            <ExternalLink size={13} className="text-gray-400 shrink-0" />
+            <span className="truncate">{node.resources.docs.title}</span>
+          </a>
+        )}
       </div>
     </div>
   );
@@ -183,37 +238,56 @@ export default function RoadmapClient({
   );
 
   return (
-    <div className="relative flex-1 min-h-0">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        fitView
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background variant={BackgroundVariant.Dots} color="#21262d" gap={24} size={1} />
-        <Controls className="!bg-[#161B22] !border-[#21262d] !shadow-none" />
-        <MiniMap
-          nodeColor={(n) => {
-            if (completed.has(n.id)) return "#10b981";
-            const info = nodeData.find((d) => d.id === n.id);
-            return STATUS_COLORS[info?.status ?? "optional"].border;
-          }}
-          className="!bg-[#161B22] !border-[#21262d]"
-        />
-      </ReactFlow>
+    <div className="flex flex-col">
+      {/* Interactive roadmap canvas */}
+      <div className="relative h-[55vh] min-h-[400px]">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick}
+          fitView
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background variant={BackgroundVariant.Dots} color="#21262d" gap={24} size={1} />
+          <Controls className="!bg-[#161B22] !border-[#21262d] !shadow-none" />
+          <MiniMap
+            nodeColor={(n) => {
+              if (completed.has(n.id)) return "#10b981";
+              const info = nodeData.find((d) => d.id === n.id);
+              return STATUS_COLORS[info?.status ?? "optional"].border;
+            }}
+            className="!bg-[#161B22] !border-[#21262d]"
+          />
+        </ReactFlow>
 
-      {selected && (
-        <NodePanel
-          node={selected}
-          roadmapId={roadmapId}
-          completed={completed.has(selected.id)}
-          onToggle={() => handleToggle(selected.id)}
-          onClose={() => setSelected(null)}
-        />
-      )}
+        {selected && (
+          <NodePanel
+            node={selected}
+            roadmapId={roadmapId}
+            completed={completed.has(selected.id)}
+            onToggle={() => handleToggle(selected.id)}
+            onClose={() => setSelected(null)}
+          />
+        )}
+      </div>
+
+      {/* Resources list below the canvas */}
+      <div className="border-t border-[#21262d] bg-[#0D1117] px-6 py-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <BookOpen size={16} className="text-emerald-400" />
+            <h2 className="text-base font-semibold text-white">Learning Resources</h2>
+            <span className="text-xs text-gray-600">— click a node above for details, or use the links below</span>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {nodeData.map((node) => (
+              <NodeCard key={node.id} node={node} completed={completed.has(node.id)} />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
