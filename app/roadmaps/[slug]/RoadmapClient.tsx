@@ -12,7 +12,7 @@ import ReactFlow, {
   BackgroundVariant,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { X, Youtube, BookOpen, Award, FileText, ExternalLink } from "lucide-react";
+import { X, PlayCircle, BookOpen, Award, FileText, ExternalLink } from "lucide-react";
 import type { RoadmapNodeInfo } from "@/data/roadmap-nodes/cyber-security";
 
 const TAG_COLORS: Record<string, string> = {
@@ -101,7 +101,7 @@ function NodePanel({ node, onClose }: { node: RoadmapNodeInfo; onClose: () => vo
       <div className="p-5 flex flex-col gap-4">
         <p className="text-sm text-gray-400 leading-relaxed">{node.description}</p>
 
-        <ResourceRow icon={<Youtube size={13} />} title="YouTube" label="youtube" resource={node.resources.youtube} />
+        <ResourceRow icon={<PlayCircle size={13} />} title="YouTube" label="youtube" resource={node.resources.youtube} />
         <ResourceRow icon={<BookOpen size={13} />} title="Course" label="course" resource={node.resources.course} />
         <ResourceRow icon={<Award size={13} />} title="Certification" label="certification" resource={node.resources.certification} />
         <ResourceRow icon={<FileText size={13} />} title="Book" label="book" resource={node.resources.book} />

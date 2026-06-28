@@ -86,7 +86,7 @@ export default function Navbar() {
               {dropOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-[#161B22] border border-[#30363d] rounded-xl shadow-xl overflow-hidden">
                   <a
-                    href={`${basePath}/profile/${user.username}/`}
+                    href={`${basePath}/profile/?u=${user.username}`}
                     className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:bg-white/5 transition-all"
                   >
                     <User size={15} /> Profile

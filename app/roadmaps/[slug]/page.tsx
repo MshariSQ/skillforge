@@ -1,12 +1,10 @@
-import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { roadmaps } from "@/data/roadmaps";
 import { cyberSecurityNodes } from "@/data/roadmap-nodes/cyber-security";
 import type { Node, Edge } from "reactflow";
 import type { RoadmapNodeInfo } from "@/data/roadmap-nodes/cyber-security";
 import { ArrowLeft } from "lucide-react";
-
-const RoadmapClient = dynamic(() => import("./RoadmapClient"), { ssr: false });
+import RoadmapWrapper from "./RoadmapWrapper";
 
 const STATUS_COLORS: Record<string, { border: string; bg: string }> = {
   required:  { border: "#10b981", bg: "#0D1117" },
@@ -105,7 +103,7 @@ export default function RoadmapPage({ params }: { params: { slug: string } }) {
 
       {/* React Flow */}
       {nodeData.length > 0 ? (
-        <RoadmapClient initialNodes={nodes} initialEdges={edges} nodeData={nodeData} />
+        <RoadmapWrapper initialNodes={nodes} initialEdges={edges} nodeData={nodeData} />
       ) : (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           <div className="text-center">

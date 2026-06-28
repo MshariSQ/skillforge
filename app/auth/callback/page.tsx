@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, parseToken } from "@/lib/auth";
 import { Zap } from "lucide-react";
 
-export default function AuthCallback() {
+function CallbackHandler() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -28,6 +28,10 @@ export default function AuthCallback() {
     router.replace("/");
   }, [params, router]);
 
+  return null;
+}
+
+function Spinner() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0D1117]">
       <div className="text-center">
@@ -37,5 +41,14 @@ export default function AuthCallback() {
         <p className="text-gray-400">Signing you in…</p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallback() {
+  return (
+    <Suspense fallback={<Spinner />}>
+      <CallbackHandler />
+      <Spinner />
+    </Suspense>
   );
 }
