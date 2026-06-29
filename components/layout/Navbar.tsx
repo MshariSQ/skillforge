@@ -81,7 +81,7 @@ export default function Navbar() {
             className="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#30363d] hover:border-emerald-500/50 text-gray-400 hover:text-emerald-400 transition-all tracking-wider"
             title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
           >
-            {lang === "en" ? "عر" : "EN"}
+            {lang === "en" ? "عربي" : "ENG"}
           </button>
 
           {user ? (
@@ -136,7 +136,7 @@ export default function Navbar() {
             onClick={() => setLang(lang === "en" ? "ar" : "en")}
             className="px-2.5 py-1 text-xs font-bold rounded-lg border border-[#30363d] text-gray-400 hover:text-emerald-400 transition-all"
           >
-            {lang === "en" ? "عر" : "EN"}
+            {lang === "en" ? "عربي" : "ENG"}
           </button>
           <button
             className="p-2 text-gray-400 hover:text-white"
