@@ -7,7 +7,17 @@
 body {
   background: #0D1117;
   color: #e6edf3;
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-geist), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html.font-arabic body {
+  font-family: var(--font-tajawal), "Segoe UI", sans-serif;
+  font-size: 1.03rem;
+  line-height: 1.75;
+}
+
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
 }
 
 html {

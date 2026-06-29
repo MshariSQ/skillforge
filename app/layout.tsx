@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Tajawal } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { LangProvider } from "@/lib/lang-context";
+import ClientLayout from "./ClientLayout";
 
 const geist = Geist({
-  variable: "--font-geist-sans",
+  variable: "--font-geist",
   subsets: ["latin"],
+});
+
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
+  subsets: ["arabic"],
+  weight: ["400", "500", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -18,15 +26,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+    <html lang="en" dir="ltr" className={`${geist.variable} ${tajawal.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#0D1117] text-[#e6edf3]">
-        <Navbar />
-        <div className="flex-1">{children}</div>
-        <Footer />
+        <LangProvider>
+          <ClientLayout>
+            <Navbar />
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </ClientLayout>
+        </LangProvider>
       </body>
     </html>
   );

@@ -1,17 +1,19 @@
-import { Zap, TrendingUp, Users, Award, Globe, BookOpen, ExternalLink } from "lucide-react";
-import Link from "next/link";
+"use client";
 
-export const metadata = {
-  title: "About — SkillForge",
-  description: "Free, open-source learning platform for roadmaps, certifications, and career guidance.",
-};
+import { Zap, TrendingUp, Users, Award, Globe, BookOpen, ExternalLink } from "lucide-react";
+import { useLang } from "@/lib/lang-context";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "/skillforge";
 
 export default function AboutPage() {
+  const { tx } = useLang();
+  const a = tx.about;
+
   const pillars = [
-    { icon: <TrendingUp size={20} />, title: "Interactive Roadmaps", desc: "Visual, step-by-step learning paths you can actually follow — built by the community for the community." },
-    { icon: <Award size={20} />, title: "Real Certifications", desc: "Curated certifications with real prices, difficulty ratings, and direct links to official exam pages." },
-    { icon: <BookOpen size={20} />, title: "Curated Courses", desc: "Hand-picked free and paid courses from Google, Harvard, IBM, and the best educators online." },
-    { icon: <Globe size={20} />, title: "Completely Free", desc: "No paywalls, no premium tiers, no ads. SkillForge is and always will be 100% free and open source." },
+    { icon: <TrendingUp size={20} />, title: a.pillars.roadmaps.title, desc: a.pillars.roadmaps.desc },
+    { icon: <Award size={20} />, title: a.pillars.certifications.title, desc: a.pillars.certifications.desc },
+    { icon: <BookOpen size={20} />, title: a.pillars.courses.title, desc: a.pillars.courses.desc },
+    { icon: <Globe size={20} />, title: a.pillars.free.title, desc: a.pillars.free.desc },
   ];
 
   return (
@@ -22,32 +24,24 @@ export default function AboutPage() {
           <Zap size={28} className="text-emerald-400" />
         </div>
         <h1 className="text-4xl md:text-5xl font-black mb-6">
-          About <span className="gradient-text">SkillForge</span>
+          <span className="gradient-text">{a.title}</span>
         </h1>
-        <p className="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">
-          SkillForge is a free, open-source learning platform that puts everything you need to build a tech career in one place — no subscriptions, no paywalls, no noise.
-        </p>
+        <p className="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">{a.subtitle}</p>
       </div>
 
-      {/* Story */}
+      {/* Problem */}
       <section className="mb-20">
-        <h2 className="text-2xl font-bold mb-6">The Problem We Solve</h2>
+        <h2 className="text-2xl font-bold mb-6">{a.problemTitle}</h2>
         <div className="bg-[#161B22] border border-[#21262d] rounded-2xl p-8">
-          <p className="text-gray-400 leading-relaxed mb-4">
-            When you want to learn something new in tech, you face the same frustrating problem: information is scattered across dozens of websites, YouTube channels, subreddits, and Discord servers. There's no single place that says "here's exactly what you need to learn, in what order, and here are the best resources to do it."
-          </p>
-          <p className="text-gray-400 leading-relaxed mb-4">
-            SkillForge fixes that. We've built interactive roadmaps that show you the exact learning path for each field, curated the best certifications with real pricing info, and hand-picked courses from the world's best educators — all completely free to access.
-          </p>
-          <p className="text-gray-400 leading-relaxed">
-            No paywalls. No sponsored content disguised as recommendations. Just clean, accurate, community-maintained learning paths.
-          </p>
+          <p className="text-gray-400 leading-relaxed mb-4">{a.problemText1}</p>
+          <p className="text-gray-400 leading-relaxed mb-4">{a.problemText2}</p>
+          <p className="text-gray-400 leading-relaxed">{a.problemText3}</p>
         </div>
       </section>
 
       {/* Pillars */}
       <section className="mb-20">
-        <h2 className="text-2xl font-bold mb-8">What We Offer</h2>
+        <h2 className="text-2xl font-bold mb-8">{a.offerTitle}</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           {pillars.map((p) => (
             <div key={p.title} className="bg-[#161B22] border border-[#21262d] rounded-2xl p-6">
@@ -63,27 +57,17 @@ export default function AboutPage() {
 
       {/* Open source */}
       <section className="mb-20">
-        <h2 className="text-2xl font-bold mb-6">Open Source</h2>
+        <h2 className="text-2xl font-bold mb-6">{a.openSourceTitle}</h2>
         <div className="bg-[#161B22] border border-[#21262d] rounded-2xl p-8">
-          <p className="text-gray-400 leading-relaxed mb-6">
-            SkillForge is fully open source under the MIT License. The entire codebase — frontend, backend, and data — is available on GitHub. We welcome contributions of all kinds: new roadmaps, resource updates, bug fixes, and feature ideas.
-          </p>
+          <p className="text-gray-400 leading-relaxed mb-6">{a.openSourceText}</p>
           <div className="flex flex-wrap gap-3">
-            <a
-              href="https://github.com/MshariSQ/skillforge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#21262d] hover:bg-[#30363d] text-white text-sm font-medium rounded-xl transition-all border border-[#30363d]"
-            >
-              <ExternalLink size={16} /> View on GitHub
+            <a href="https://github.com/MshariSQ/skillforge" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#21262d] hover:bg-[#30363d] text-white text-sm font-medium rounded-xl transition-all border border-[#30363d]">
+              <ExternalLink size={16} /> {a.viewGithub}
             </a>
-            <a
-              href="https://github.com/MshariSQ/skillforge/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 text-sm font-medium rounded-xl transition-all"
-            >
-              Report an Issue
+            <a href="https://github.com/MshariSQ/skillforge/issues" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 text-sm font-medium rounded-xl transition-all">
+              {a.reportIssue}
             </a>
           </div>
         </div>
@@ -93,16 +77,12 @@ export default function AboutPage() {
       <section>
         <div className="text-center bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-2xl p-10">
           <Users size={32} className="text-emerald-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-3">Join the Community</h2>
-          <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-            Sign in with GitHub to track your progress, bookmark certifications, and be part of the growing SkillForge community.
-          </p>
-          <Link
-            href="/roadmaps"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl transition-all text-sm"
-          >
-            Explore Roadmaps →
-          </Link>
+          <h2 className="text-2xl font-bold mb-3">{a.communityTitle}</h2>
+          <p className="text-gray-400 mb-6 max-w-lg mx-auto">{a.communityText}</p>
+          <a href={`${BASE}/roadmaps/`}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl transition-all text-sm">
+            {a.exploreRoadmaps}
+          </a>
         </div>
       </section>
     </main>
