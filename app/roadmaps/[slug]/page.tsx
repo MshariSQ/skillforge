@@ -70,15 +70,18 @@ function buildFlow(data: RoadmapNodeInfo[]): { nodes: Node[]; edges: Edge[] } {
   return { nodes, edges };
 }
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return roadmaps.map((r) => ({ slug: r.id }));
 }
 
-export default function RoadmapPage({ params }: { params: { slug: string } }) {
-  const roadmap = roadmaps.find((r) => r.id === params.slug);
+export default async function RoadmapPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const roadmap = roadmaps.find((r) => r.id === slug);
   if (!roadmap) notFound();
 
-  const nodeData = NODE_DATA[params.slug] ?? [];
+  const nodeData = NODE_DATA[slug] ?? [];
   const { nodes, edges } = buildFlow(nodeData);
 
   const legend = [
@@ -117,7 +120,7 @@ export default function RoadmapPage({ params }: { params: { slug: string } }) {
 
       {/* React Flow */}
       {nodeData.length > 0 ? (
-        <RoadmapWrapper initialNodes={nodes} initialEdges={edges} nodeData={nodeData} roadmapId={params.slug} />
+        <RoadmapWrapper initialNodes={nodes} initialEdges={edges} nodeData={nodeData} roadmapId={slug} />
       ) : (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           <div className="text-center">
